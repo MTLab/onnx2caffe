@@ -235,7 +235,7 @@ def _convert_dropout(node,graph,err):
     node_name = node.name
     input_name = str(node.inputs[0])
     output_name = str(node.outputs[0])
-    ratio = node.attrs.get('radio', 0.5)
+    ratio = node.attrs.get('ratio', 0.5)
     layer = myf("Dropout", node_name, [input_name], [output_name], dropout_ratio =ratio)
     graph.channel_dims[output_name] = graph.channel_dims[input_name]
     return layer
