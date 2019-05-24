@@ -1,10 +1,8 @@
 from __future__ import print_function
-import torch
-import torch.nn
 import sys
+import caffe
 import onnx
 import numpy as np
-import caffe
 from caffe.proto import caffe_pb2
 caffe.set_mode_cpu()
 from onnx2caffe._transformers import ConvAddFuser,ConstantsToInitializers
