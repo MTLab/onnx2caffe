@@ -379,6 +379,52 @@ def _convert_conv_transpose(node,graph,err):
     #         group=groups,
     #         bias_term=bias_term))
 
+def _convert_conv_slice(node, graph, err):
+
+    input_name = str(node.inputs[0])
+    output_name = str(node.outputs[0])
+    node_name = node.name
+    axes = node.attrs.get('axes', [])
+
+    channels = graph.channel_dims[input_name]
+
+    if len(axes) != 1:
+        return err.unsupported_op_configuration(node, "Only single axis Slice is supported now")
+
+    starts = node.attrs['starts']
+    ends = node.attrs['ends']
+    axes = node.attrs.get('axes', [])
+
+    start = starts[0]
+    end = ends[0]
+    valid_pts = []
+    for pt in [start, end]:
+        if pt is not None and pt != 0 and pt != channels:
+            valid_pts.append(pt)
+
+    if start == 0:
+        output_name_list = [output_name, str(output_name) + "slice_another"]
+    else:
+        output_name_list = [str(output_name) + "slice_another", output_name]
+
+    if len(axes) == 0: axes = range(len(starts))
+    if len(axes) == 1:
+        if axes[0] == 0:
+            axis = 'channel'
+        elif axes[0] == 1:
+            axis = 'height'
+        elif axes[0] == 2:
+            axis = 'width'
+        else:
+            return err.unsupported_op_configuration(node, "Slice is supported only along H, W or C dimensions")
+    else:
+        return err.unsupported_op_configuration(node,
+                                                "Slice is supported only along one axis for 3D or 4D Tensors")
+
+    layer = myf('Slice', node_name, [input_name], output_name_list, slice_dim=axes[0], slice_point=valid_pts)
+    graph.channel_dims[output_name_list[0]] = valid_pts[0]
+    graph.channel_dims[output_name_list[-1]] = channels - valid_pts[-1]
+    return layer
 
 
 _ONNX_NODE_REGISTRY = {
@@ -397,4 +443,5 @@ _ONNX_NODE_REGISTRY = {
     "ConvTranspose": _convert_conv_transpose,
     "Sigmoid": _convert_sigmoid,
     "Flatten": _convert_Flatten,
+    "Slice": _convert_conv_slice,
 }

@@ -36,6 +36,7 @@ python convertCaffe.py ./model/MobileNetV2.onnx ./model/MobileNetV2.prototxt ./m
 * Upsample
 * Concat
 * Flatten
+* Slice
 
 ### TODO List
  - [ ] support all onnx operations (which is impossible)
